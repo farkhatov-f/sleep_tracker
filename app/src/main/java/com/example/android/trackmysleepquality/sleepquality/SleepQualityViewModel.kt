@@ -34,11 +34,18 @@ class SleepQualityViewModel(
 
 
     /**
+     * viewModelJob allows us to cancel all coroutines started by this ViewModel.
      */
+    private val viewModelJob = Job()
 
     /**
+     * A [CoroutineScope] keeps track of all coroutines started by this ViewModel.
      *
+     * Because we pass it [viewModelJob], any coroutine started in this scope can be cancelled
+     * by calling `viewModelJob.cancel()`
      *
+     * By default, all coroutines started in uiScope will launch in [Dispatchers.Main] which is
+     * the main thread on Android. This is a sensible default because most coroutines started by
      */
 
     /**
@@ -73,6 +80,8 @@ class SleepQualityViewModel(
      */
     fun onSetSleepQuality(quality: Int) {
         viewModelScope.launch {
+            // IO is a thread pool for running operations that access the disk, such as
+            // our Room database.
                 val tonight = database.get(sleepNightKey) ?: return@launch
                 tonight.sleepQuality = quality
                 database.update(tonight)
